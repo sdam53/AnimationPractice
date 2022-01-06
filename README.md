@@ -1,1 +1,1 @@
-Practicing Animations in JS for school.
+Animation Practice for TCSS 491
