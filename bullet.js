@@ -17,19 +17,24 @@ class Bullet {
   //  ctx.fillRect(this.BB.x, this.BB.y, this.BB.width, this.BB.height);
     //ctx.strokeStyle = 'Blue';
     //ctx.strokeRect(this.x, this.y, this.width, this.height);
-    ctx.fillStyle  = '#73eff7'; //cyan from the sprite maybe add as a param
+    //ctx.fillStyle  = '#73eff7'; //cyan from the sprite maybe add as a param
+    var randomColor = '#'+Math.floor(Math.random()*16777215).toString(16);
+    ctx.fillStyle = randomColor;
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius , 0, 2 * Math.PI);
     ctx.closePath();
     ctx.fill();
 
-    ctx.strokeStyle = 'Blue';
-    ctx.strokeRect(this.BB.x, this.BB.y, this.BB.width, this.BB.height);
+    if (PARAMS.DEBUG) {
+      ctx.strokeStyle = 'Blue';
+      ctx.strokeRect(this.BB.x, this.BB.y, this.BB.width, this.BB.height);
+    }
   }
 
   update() {
-    this.x += this.bulletSpeed * (this.xBulletDir / this.distance);
-    this.y += this.bulletSpeed * (this.yBulletDir / this.distance);
+    this.radius += .01 * PARAMS.SCALE;
+    //this.x += this.bulletSpeed * (this.xBulletDir / this.distance);
+    //this.y += this.bulletSpeed * (this.yBulletDir / this.distance);
     this.updateBB();
 
   }

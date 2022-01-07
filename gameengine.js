@@ -54,6 +54,7 @@ class GameEngine {
             if (this.running) {
                 requestAnimFrame(gameLoop, this.ctx.canvas);
             }
+
         };
         gameLoop();
     };
@@ -160,8 +161,14 @@ class GameEngine {
     };
 
     update() {
+
+        PARAMS.DEBUG = document.getElementById("debug").checked;
+        PARAMS.PAUSE = document.getElementById("pause").checked;
+        if (PARAMS.PAUSE) {
+          this.running = false;
+        }
         // Update Entities
-        this.entities.enemies.forEach(entity => entity.enemies.update(this)); //update ememies
+        this.entities.enemies.forEach(entity => entity.update(this)); //update ememies
 
         // Remove dead things
         this.entities.enemies = this.entities.enemies.filter(entity => !entity.removeFromWorld);

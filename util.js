@@ -1,6 +1,8 @@
 /** Global Parameters Object */
 const PARAMS = {
-  SCALE: 8
+  SCALE: 2,
+  DEBUG: false,
+  PAUSE: false
 };
 
 /** Easy access to math functions */

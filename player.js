@@ -12,8 +12,8 @@ class Player {
 
     this.health = 10;
     this.stamina = 3;
-    this.speed = 1; //bigger is faster
-    this.attackSpeed = .08 // smaller is faster
+    this.speed = 2; //bigger is faster
+    this.attackSpeed = .05 // smaller is faster
     this.attackDmg = 10; // how much damage player does
 
     this.attackDelay = 100;
@@ -97,7 +97,7 @@ class Player {
         this.swordBB = new BoundingBox(this.x + 55 * PARAMS.SCALE, this.y - 12 * PARAMS.SCALE, 28 * PARAMS.SCALE, 51 * PARAMS.SCALE);
       }
       if (this.animations[this.size][0][2].frame == 7) {
-        this.swordBB = new BoundingBox(this.x + 55 * PARAMS.SCALE, this.y - 12 * PARAMS.SCALE, 35 * PARAMS.SCALE, 51 * PARAMS.SCALE);
+        this.swordBB = new BoundingBox(this.x + 55 * PARAMS.SCALE, this.y - 12 * PARAMS.SCALE, 37 * PARAMS.SCALE, 51 * PARAMS.SCALE);
       }
     }
     // this and the bottom is for left attacking
@@ -135,12 +135,35 @@ class Player {
     if (this.game.space || this.game.click) {
         this.animations[this.size][this.direction][this.state].flag = true; //used to make sure animation completes
         this.state = 2;
-        this.stamina--;
-        this.health--;
     }
     if (!(this.game.right || this.game.left || this.game.up || this.game.down || this.game.space || this.game.click)) {
       this.state = 0;
     }
+
+    //collision
+    var that = this;
+      this.game.entities.enemies.forEach((enemy, i) => {
+        if (enemy.BB && that.BB.collide(enemy.BB)) {
+          this.health--;
+          enemy.destroy();
+          this.game.entitiesToAdd.push(new Bullet(this.game, getRandomInteger(0, 1850), getRandomInteger(300, 800),PARAMS.SCALE, 5 * PARAMS.SCALE,2,2,5,1));
+          if (getRandomInteger(0, 1850) % 2 == 0 && getRandomInteger(0, 1850) < 1100) {
+            this.game.entitiesToAdd.push(new Bullet(this.game, getRandomInteger(0, 1850), getRandomInteger(300, 800),PARAMS.SCALE, 5 * PARAMS.SCALE,2,2,5,1));
+          }
+        }
+        if (that.swordBB) {
+          if (enemy.BB && that.swordBB.collide(enemy.BB)) {
+            enemy.destroy();
+            this.game.entitiesToAdd.push(new Bullet(this.game, getRandomInteger(0, 1850), getRandomInteger(300, 800),PARAMS.SCALE, 5 * PARAMS.SCALE,2,2,5,1));
+            if (getRandomInteger(0, 1850) % 2 == 0 && getRandomInteger(0, 1850) < 500) {
+              this.game.entitiesToAdd.push(new Bullet(this.game, getRandomInteger(0, 1850), getRandomInteger(300, 800),PARAMS.SCALE, 5 * PARAMS.SCALE,2,2,5,1));
+            }
+            this.game.camera.hitCount++;
+            //  this.health--;
+            this.stamina--;
+          }
+        }
+      });
     this.updateBB();
   }
 
@@ -159,7 +182,7 @@ class Player {
     } else {//right idle
       this.animations[this.size][this.direction][this.state].drawFrame(this.game.clockTick, ctx,this.x, this.y, PARAMS.SCALE);
     }
-    if (true) { //params.debug
+    if (PARAMS.DEBUG) { //params.debug
       ctx.strokeStyle = 'Blue'; //play BB
       ctx.strokeRect(this.BB.x, this.BB.y, this.BB.width, this.BB.height);
       if (this.swordBB != null) { //sword BB
