@@ -1,5 +1,7 @@
 /** Global Parameters Object */
-const params = { };
+const PARAMS = {
+  SCALE: 10
+};
 
 /** Easy access to math functions */
 const {
