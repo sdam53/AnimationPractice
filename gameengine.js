@@ -59,6 +59,7 @@ class GameEngine {
     };
 
     startInput() {
+        var that = this;
         const getXandY = e => ({
             x: e.clientX - this.ctx.canvas.getBoundingClientRect().left,
             y: e.clientY - this.ctx.canvas.getBoundingClientRect().top
@@ -71,12 +72,13 @@ class GameEngine {
             this.mouse = getXandY(e);
         });
 
-        this.ctx.canvas.addEventListener("click", e => {
-            if (this.options.debugging) {
-                console.log("CLICK", getXandY(e));
-            }
-            this.click = getXandY(e);
-        });
+        this.ctx.canvas.addEventListener("mousedown", function (e) {
+            that.click = true;
+          }, false);
+
+          this.ctx.canvas.addEventListener("mouseup", function (e) {
+            that.click = false;
+          }, false);
 
 
         this.ctx.canvas.addEventListener("contextmenu", e => {

@@ -5,6 +5,7 @@ const ASSET_MANAGER = new AssetManager();
 //spritesheets
 ASSET_MANAGER.queueDownload("./assets/playerleft.png");
 ASSET_MANAGER.queueDownload("./assets/playerright.png");
+ASSET_MANAGER.queueDownload("./assets/ui.png");
 
 
 ASSET_MANAGER.downloadAll(() => {
