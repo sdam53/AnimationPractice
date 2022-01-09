@@ -4,6 +4,8 @@ class Player {
     this.game.player = this;
     this.leftSpriteSheet = ASSET_MANAGER.getAsset("./assets/playerleft.png");
     this.rightSpriteSheet = ASSET_MANAGER.getAsset("./assets/playerright.png");
+    this.rightTeleportSpriteSheet = ASSET_MANAGER.getAsset("./assets/rightteleport.png");
+    this.leftTeleportSpriteSheet = ASSET_MANAGER.getAsset("./assets/leftteleport.png");
 
     this.size = 0; // in case i want another size
     this.direction = 0; // 0 = right, 1 = left
@@ -20,6 +22,10 @@ class Player {
     this.timer = this.attackDelay;
 
     this.attackFlag = false;//not used rn
+
+    this.rollSpeed = 1;
+
+    this.canGetHurt = true;
 
 
     //for animations offsets should i create variables instead then update then or would it be better to use ifs like i am?
@@ -57,7 +63,7 @@ class Player {
 
     //direction = 0, state = 3
     //right rolling
-    this.animations[0][0][3] = new Animator(this.rightSpriteSheet, 29, 37, 37, 59, 1, .3, 63, false, true); //havent done yet
+    this.animations[0][0][3] = new Animator(this.rightTeleportSpriteSheet, 0, 70, 336, 88, 24, .04, 0, false, true);
 
     //LEFT-----------------------------------------------------------------------------------------------------------------------------------
     //direction = 1, state = 0
@@ -74,7 +80,7 @@ class Player {
 
     //direction = 1, state = 3
     //left rolling
-    this.animations[0][1][3] = new Animator(this.rightSpriteSheet, 29, 37, 37, 59, 1, .3, 63, false, true); // havent done yet
+    this.animations[0][1][3] = new Animator(this.leftTeleportSpriteSheet, 0, 70, 336, 88, 24, .04, 0, false, true);
   }
 
   updateBB() {
@@ -113,43 +119,67 @@ class Player {
     if (!this.animations[this.size][this.direction][2].flag) {
       this.swordBB = null;
     }
+
   }
 
   update() {
-    if (this.game.right) {
-      this.direction = 0;
-      this.state = 1;
-      this.x += this.speed * PARAMS.SCALE;
-    } else if (this.game.left) {
-      this.direction = 1;
-      this.state = 1;
-      this.x -= this.speed * PARAMS.SCALE;
+    this.canGetHurt = false; //I-Frames when rolling
+
+    if (this.animations[this.size][0][3].frame >= 6 && this.animations[this.size][0][3].frame <= 19) {
+      this.x += this.rollSpeed * PARAMS.SCALE;
+    } else if (this.animations[this.size][1][3].frame >= 6 && this.animations[this.size][1][3].frame <= 19) {
+      this.x -= this.rollSpeed * PARAMS.SCALE;
+    } else { //makes sure that whn you roll you can only roll
+      this.canGetHurt = true; //No I-frames when not rolling
+      if (this.game.right) {
+        this.direction = 0;
+        this.state = 1;
+        this.x += this.speed * PARAMS.SCALE;
+      } else if (this.game.left) {
+        this.direction = 1;
+        this.state = 1;
+        this.x -= this.speed * PARAMS.SCALE;
+      }
+      if (this.game.down) {
+        this.state = 1;
+        this.y += this.speed * PARAMS.SCALE;
+      }
+      if (this.game.up) {
+        this.state = 1;
+        this.y -= this.speed * PARAMS.SCALE;
+      }
+      if (this.game.click) {
+          this.animations[this.size][this.direction][this.state].flag = true; //used to make sure animation completes
+          this.state = 2;
+      }
+      if (this.game.space) {
+          this.animations[this.size][this.direction][this.state].flag = true;
+          this.state = 3;
+      }
+      if (!(this.game.right || this.game.left || this.game.up || this.game.down || this.game.space || this.game.click)) {
+        this.state = 0;
+      }
     }
-    if (this.game.down) {
-      this.state = 1;
-      this.y += this.speed * PARAMS.SCALE;
-    } if (this.game.up) {
-      this.state = 1;
-      this.y -= this.speed * PARAMS.SCALE;
-    }
-    if (this.game.space || this.game.click) {
-        this.animations[this.size][this.direction][this.state].flag = true; //used to make sure animation completes
-        this.state = 2;
-    }
-    if (!(this.game.right || this.game.left || this.game.up || this.game.down || this.game.space || this.game.click)) {
-      this.state = 0;
-    }
+
+    //actually since update gets called all the time, cant i just do this.animation.isDone();
+    //console.log(this.animations[this.size][this.direction][this.state].isDone());
+    //prob can
+
 
     //collision
     var that = this;
       this.game.entities.enemies.forEach((enemy, i) => {
-        if (enemy.BB && that.BB.collide(enemy.BB)) {
-          this.health--;
-          enemy.destroy();
-          this.game.entitiesToAdd.push(new Bullet(this.game, getRandomInteger(0, 1850), getRandomInteger(300, 800),PARAMS.SCALE, 5 * PARAMS.SCALE,2,2,5,1));
-          if (getRandomInteger(0, 1850) % 2 == 0 && getRandomInteger(0, 1850) < 1100) {
+        if (that.canGetHurt) {
+          if (enemy.BB && that.BB.collide(enemy.BB)) {
+            this.health--;
+            enemy.destroy();
             this.game.entitiesToAdd.push(new Bullet(this.game, getRandomInteger(0, 1850), getRandomInteger(300, 800),PARAMS.SCALE, 5 * PARAMS.SCALE,2,2,5,1));
+            if (getRandomInteger(0, 1850) % 2 == 0 && getRandomInteger(0, 1850) < 1100) {
+              this.game.entitiesToAdd.push(new Bullet(this.game, getRandomInteger(0, 1850), getRandomInteger(300, 800),PARAMS.SCALE, 5 * PARAMS.SCALE,2,2,5,1));
+            }
           }
+        } else { //rolling give I-frames
+
         }
         if (that.swordBB) {
           if (enemy.BB && that.swordBB.collide(enemy.BB)) {
@@ -168,8 +198,12 @@ class Player {
   }
 
   draw(ctx) {
-    //feet arent synced so they are if statements. right idle is base
-    if (this.game.right) { //right run
+    //feet arent synced so they are if statements. right idle is base. Checks for roll go first since when you roll you can only roll
+    if (this.animations[this.size][0][3].flag) { //right roll
+      this.animations[this.size][0][3].drawFrame(this.game.clockTick, ctx,this.x + (-71 * PARAMS.SCALE), this.y + (-49 * PARAMS.SCALE), PARAMS.SCALE);
+    } else if (this.animations[this.size][1][3].flag) { //left roll
+        this.animations[this.size][1][3].drawFrame(this.game.clockTick, ctx,this.x + (-185 * PARAMS.SCALE), this.y + (-49 * PARAMS.SCALE), PARAMS.SCALE);
+    } else if (this.game.right) { //right run
       this.animations[this.size][this.direction][this.state].drawFrame(this.game.clockTick, ctx,this.x + (6 * PARAMS.SCALE),this.y + (-9 * PARAMS.SCALE), PARAMS.SCALE);
     } else if (this.game.left) { //left run
       this.animations[this.size][this.direction][this.state].drawFrame(this.game.clockTick, ctx,this.x + (23 * PARAMS.SCALE),this.y + (-9 * PARAMS.SCALE), PARAMS.SCALE); //left run
@@ -177,11 +211,23 @@ class Player {
       this.animations[this.size][0][2].drawFrame(this.game.clockTick, ctx,this.x + (-1 * PARAMS.SCALE),this.y + (-15 * PARAMS.SCALE), PARAMS.SCALE);
     } else if ((this.animations[this.size][1][2].flag)) { //left attack
       this.animations[this.size][1][2].drawFrame(this.game.clockTick, ctx,this.x + (-13 * PARAMS.SCALE),this.y + (-15 * PARAMS.SCALE), PARAMS.SCALE);
-    }  else if (this.direction === 1) {//left idle
-      this.animations[this.size][this.direction][this.state].drawFrame(this.game.clockTick, ctx,this.x + (25 * PARAMS.SCALE),this.y, PARAMS.SCALE);
+    } else if (this.animations[this.size][0][3].flag) { //right roll
+      this.animations[this.size][0][3].drawFrame(this.game.clockTick, ctx,this.x + (-71 * PARAMS.SCALE), this.y + (-49 * PARAMS.SCALE), PARAMS.SCALE);
+    } else if (this.direction === 1) {//left idle
+      this.animations[this.size][this.direction][this.state].drawFrame(this.game.clockTick, ctx,this.x + (26 * PARAMS.SCALE),this.y, PARAMS.SCALE);
     } else {//right idle
       this.animations[this.size][this.direction][this.state].drawFrame(this.game.clockTick, ctx,this.x, this.y, PARAMS.SCALE);
     }
+
+
+
+
+
+
+
+
+
+
     if (PARAMS.DEBUG) { //params.debug
       ctx.strokeStyle = 'Blue'; //play BB
       ctx.strokeRect(this.BB.x, this.BB.y, this.BB.width, this.BB.height);
@@ -189,7 +235,7 @@ class Player {
         ctx.strokeStyle = 'Red';
         ctx.strokeRect(this.swordBB.x, this.swordBB.y, this.swordBB.width, this.swordBB.height);
       }
-      //console.log("Player State: [" + this.size + "][" + this.direction + "][" + this.state + "]"); // player state
+      console.log("Player State: [" + this.size + "][" + this.direction + "][" + this.state + "]"); // player state
     }
   }
 }
