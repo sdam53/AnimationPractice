@@ -7,6 +7,19 @@ class Player {
     this.rightTeleportSpriteSheet = ASSET_MANAGER.getAsset("./assets/rightteleport.png");
     this.leftTeleportSpriteSheet = ASSET_MANAGER.getAsset("./assets/leftteleport.png");
 
+    this.frontDeathSheet = ASSET_MANAGER.getAsset("./assets/test/player_front_death.png");
+    this.frontRunSheet = ASSET_MANAGER.getAsset("./assets/test/player_front_run.png");
+    this.frontIdleSheet = ASSET_MANAGER.getAsset("./assets/test/player_front_idle.png");
+    this.leftIdleSheet = ASSET_MANAGER.getAsset("./assets/test/player_left_idle.png");
+    this.leftRunSheet = ASSET_MANAGER.getAsset("./assets/test/player_left_run.png");
+    this.rightIdleSheet = ASSET_MANAGER.getAsset("./assets/test/player_right_idle.png");
+    this.rightRunSheet = ASSET_MANAGER.getAsset("./assets/test/player_right_run.png");
+
+
+
+
+
+
     this.size = 0; // in case i want another size
     this.direction = 0; // 0 = right, 1 = left
     this.state = 0; // 0 = idle, 1 = running, 2 = attacking, 3= rolling, 4 = death
@@ -24,6 +37,10 @@ class Player {
     this.attackFlag = false;//not used rn
 
     this.rollSpeed = 1;
+
+    this.jump = false;
+    this.fall = false;
+    this.down = true;
 
     this.canGetHurt = true;
 
@@ -45,6 +62,7 @@ class Player {
             }
         }
     }
+
 
     //RIGHT--------------------------------------------------------------------------------------------------------------------------------
     //direction = 0, state = 0
@@ -86,9 +104,9 @@ class Player {
   updateBB() {
     //there are multiple ifs because of how animations feet arent sync
     this.lastBB = this.BB; //player BB
-    if (this.game.space && this.animations[this.size][0][2].flag) { //right attack
+    if (this.game.shift && this.animations[this.size][0][2].flag) { //right attack
       this.BB = new BoundingBox(this.x + 39 * PARAMS.SCALE, this.y, 16 * PARAMS.SCALE, 39 * PARAMS.SCALE);
-    } else if (this.game.space && this.animations[this.size][1][2].flag) { //left attack
+    } else if (this.game.shift && this.animations[this.size][1][2].flag) { //left attack
       this.BB = new BoundingBox(this.x + 25 * PARAMS.SCALE, this.y, 16 * PARAMS.SCALE, 39 * PARAMS.SCALE);
     } else { //when idle/right/left. i like to think the chatacter is in  a cloak so the BB doesnt covere the whole sprite
       this.BB = new BoundingBox(this.x + 32 * PARAMS.SCALE, this.y, 16 * PARAMS.SCALE, 39 * PARAMS.SCALE);
@@ -123,40 +141,88 @@ class Player {
   }
 
   update() {
+    let collideCount = 0;
+    var that = this;
     this.canGetHurt = false; //I-Frames when rolling
-
     if (this.animations[this.size][0][3].frame >= 6 && this.animations[this.size][0][3].frame <= 19) {
       this.x += this.rollSpeed * PARAMS.SCALE;
     } else if (this.animations[this.size][1][3].frame >= 6 && this.animations[this.size][1][3].frame <= 19) {
       this.x -= this.rollSpeed * PARAMS.SCALE;
     } else { //makes sure that whn you roll you can only roll
       this.canGetHurt = true; //No I-frames when not rolling
+
+
+      //should figure out how to check a collision with the one im touching first then decide whether im allowed to move
+      //maybe calculate the bb for the move then check it if theres at least one collide then dont move
       if (this.game.right) {
         this.direction = 0;
         this.state = 1;
-        this.x += this.speed * PARAMS.SCALE;
+        if (this.checkMapCollision(this.x + this.speed * PARAMS.SCALE, this.y, 16 * PARAMS.SCALE, 39 * PARAMS.SCALE)) {
+          this.x += this.speed * PARAMS.SCALE;
+        }
       } else if (this.game.left) {
         this.direction = 1;
         this.state = 1;
-        this.x -= this.speed * PARAMS.SCALE;
+        if (this.checkMapCollision(this.x - this.speed * PARAMS.SCALE, this.y, 16 * PARAMS.SCALE, 39 * PARAMS.SCALE)) {
+          this.x -= this.speed * PARAMS.SCALE;
+        }
       }
       if (this.game.down) {
         this.state = 1;
-        this.y += this.speed * PARAMS.SCALE;
+        if (this.checkMapCollision(this.x, this.y + this.speed * PARAMS.SCALE, 16 * PARAMS.SCALE, 39 * PARAMS.SCALE)) {
+          this.y += this.speed * PARAMS.SCALE;
+        }
       }
-      if (this.game.up) {
-        this.state = 1;
-        this.y -= this.speed * PARAMS.SCALE;
+
+
+      if (this.game.space) {
+        this.jump = true;
+        this.fall = false;
       }
+      //console.log(this.jump);
+      //console.log(this.fall);
+        if (this.jump) {
+            if (this.y > 10) {
+                this.y -= 20;
+
+            }
+            if (this.y <= 50) {//not reaching this
+                 this.jump = false;
+                 this.fall = true;
+             }
+        } else if (this.fall) {
+            if (this.y < 10) {
+                this.y += 40;
+            }
+            if (this.y >= 10) {
+                this.y = 10;
+                this.fall = false;
+                this.down = true;
+            }
+        }
+
+
+
+
+
+    //  if (this.game.up) {
+      //  this.state = 1;
+      //  if (this.checkMapCollision(this.x, this.y - this.speed * PARAMS.SCALE, 16 * PARAMS.SCALE, 39 * PARAMS.SCALE)) {
+        //  this.y -= this.speed * PARAMS.SCALE;
+        //}
+    //  }
       if (this.game.click) {
           this.animations[this.size][this.direction][this.state].flag = true; //used to make sure animation completes
           this.state = 2;
+          ASSET_MANAGER.playAsset("./assets/alex-productions-epic-cinematic-gaming-cyberpunk-reset.mp3");
+
       }
-      if (this.game.space) {
+      if (this.game.shift) {
           this.animations[this.size][this.direction][this.state].flag = true;
           this.state = 3;
+          console.log("shift");
       }
-      if (!(this.game.right || this.game.left || this.game.up || this.game.down || this.game.space || this.game.click)) {
+      if (!(this.game.right || this.game.left || this.game.up || this.game.down || this.game.space || this.game.shift || this.game.click)) {
         this.state = 0;
       }
     }
@@ -166,8 +232,8 @@ class Player {
     //prob can
 
 
-    //collision
-    var that = this;
+    // enemey collision
+     that = this;
       this.game.entities.enemies.forEach((enemy, i) => {
         if (that.canGetHurt) {
           if (enemy.BB && that.BB.collide(enemy.BB)) {
@@ -181,23 +247,42 @@ class Player {
         } else { //rolling give I-frames
 
         }
+        //sword collision
         if (that.swordBB) {
           if (enemy.BB && that.swordBB.collide(enemy.BB)) {
             enemy.destroy();
-            this.game.entitiesToAdd.push(new Bullet(this.game, getRandomInteger(0, 1850), getRandomInteger(300, 800),PARAMS.SCALE, 5 * PARAMS.SCALE,2,2,5,1));
+            this.game.entitiesToAdd.push(new Bullet(this.game, getRandomInteger(0, 1850), getRandomInteger(300, 800 - 120),PARAMS.SCALE, 5 * PARAMS.SCALE,2,2,5,1));
             if (getRandomInteger(0, 1850) % 2 == 0 && getRandomInteger(0, 1850) < 500) {
-              this.game.entitiesToAdd.push(new Bullet(this.game, getRandomInteger(0, 1850), getRandomInteger(300, 800),PARAMS.SCALE, 5 * PARAMS.SCALE,2,2,5,1));
+              this.game.entitiesToAdd.push(new Bullet(this.game, getRandomInteger(0, 1850), getRandomInteger(300, 800 - 120),PARAMS.SCALE, 5 * PARAMS.SCALE,2,2,5,1));
             }
             this.game.camera.hitCount++;
             //  this.health--;
             this.stamina--;
           }
         }
-      });
+    });
+    //tile collision
+
+
+
     this.updateBB();
   }
 
+  checkMapCollision(x, y, w, h) {
+    let collisionCount = 0;
+    let tempBB = new BoundingBox(x, y, w, h);
+    this.game.entities.tiles.forEach((tiles, i) => {
+      if (tiles.BB.collide(tempBB)) {
+        collisionCount++;
+      }
+    });
+    //console.log(collisionCount === 0);
+    return (collisionCount === 0); //false = collide true = no collide
+  }
+
+
   draw(ctx) {
+
     //feet arent synced so they are if statements. right idle is base. Checks for roll go first since when you roll you can only roll
     if (this.animations[this.size][0][3].flag) { //right roll
       this.animations[this.size][0][3].drawFrame(this.game.clockTick, ctx,this.x + (-71 * PARAMS.SCALE), this.y + (-49 * PARAMS.SCALE), PARAMS.SCALE);
@@ -218,7 +303,6 @@ class Player {
     } else {//right idle
       this.animations[this.size][this.direction][this.state].drawFrame(this.game.clockTick, ctx,this.x, this.y, PARAMS.SCALE);
     }
-
 
 
 
