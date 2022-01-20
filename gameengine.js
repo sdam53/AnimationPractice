@@ -9,14 +9,17 @@ class GameEngine {
         // Context dimensions
         this.surfaceWidth = null;
         this.surfaceHeight = null;
+        this.blockSize = 50;
 
         // Everything that will be updated and drawn each frame
         this.entities = {
           player: null,
-          enemies: []
+          enemies: [],
+          tiles: []
         }
         // Entities to be added at the end of each update
         this.entitiesToAdd = [];
+        this.tilesToAdd = [];
 
         // Information on the input
         this.left = false;
@@ -24,6 +27,7 @@ class GameEngine {
         this.up = false;
         this.down = false;
         this.space = false;
+        this.shift = false;
         this.click = false;
 
         // THE KILL SWITCH
@@ -37,6 +41,8 @@ class GameEngine {
             },
             debugging: false,
         };
+
+
     };
 
     init(ctx) {
@@ -67,17 +73,25 @@ class GameEngine {
         });
 
         this.ctx.canvas.addEventListener("mousemove", e => {
-            if (this.options.debugging) {
-                console.log("MOUSE_MOVE", getXandY(e));
-            }
-            this.mouse = getXandY(e);
+          that.xClick = e.offsetX;
+          that.yClick = e.offsetY;
+          this.mouse = getXandY(e);
+          if (PARAMS.DEBUG) {
+              console.log(("(" + that.xClick + ", " + that.yClick + ")"));
+          }
         });
 
         this.ctx.canvas.addEventListener("mousedown", function (e) {
+          if (PARAMS.DEBUG) {
+              console.log(e);
+          }
             that.click = true;
           }, false);
 
           this.ctx.canvas.addEventListener("mouseup", function (e) {
+            if (PARAMS.DEBUG) {
+                console.log(e);
+            }
             that.click = false;
           }, false);
 
@@ -93,9 +107,9 @@ class GameEngine {
         });
 
         this.ctx.canvas.addEventListener("keydown", e => {
-            if (this.options.debugging) {
-                console.log("CLICK", getXandY(e));
-            }
+          if (PARAMS.DEBUG) {
+              console.log(e);
+          }
             switch (e.code) {
               case "ArrowLeft":
               case "KeyA":
@@ -116,10 +130,15 @@ class GameEngine {
               case "Space":
                 that.space = true;
                 break;
+              case "ShiftLeft":
+                that.shift = true;
+                break;
               }
         }, false);
         this.ctx.canvas.addEventListener("keyup", function (e) {
-              console.log(e);
+              if (PARAMS.DEBUG) {
+                  console.log(e);
+              }
               switch (e.code) {
                 case "ArrowLeft":
                 case "KeyA":
@@ -140,24 +159,39 @@ class GameEngine {
                 case "Space":
                   that.space = false;
                   break;
+                case "ShiftLeft":
+                  that.shift = false;
+                  break;
               }
           }, false);
     };
 
-    addEntity(entity) {
+    addEntity(entity) { //rn its used for enemy adding
         this.entitiesToAdd.push(entity);
     };
 
+    addTiles(tiles) {
+      this.tilesToAdd.push(tiles);
+    }
+
     draw() {
+
         // Clear the whole canvas with transparent color (rgba(0, 0, 0, 0))
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        this.ctx.drawImage(ASSET_MANAGER.getAsset("./assets/Background_0.png"), 0, 0, 1850, 800);
+        this.ctx.drawImage(ASSET_MANAGER.getAsset("./assets/Background_1.png"), 0, 0, 1850, 800);
+
 
         // Draw latest things first
         for (let i = this.entities.enemies.length - 1; i >= 0; i--) { //draws enemies
             this.entities.enemies[i].draw(this.ctx, this);
         }
+        this.entities.tiles.forEach(tiles => tiles.draw(this.ctx)); //update ememies
+
         this.entities.player.draw(this.ctx, this); //draw player
+
         this.camera.draw(this.ctx); //draws scene manager
+
     };
 
     update() {
@@ -169,6 +203,7 @@ class GameEngine {
         }
         // Update Entities
         this.entities.enemies.forEach(entity => entity.update(this)); //update ememies
+        this.entities.tiles.forEach(tiles => tiles.update(this)); //update ememies
 
         // Remove dead things
         this.entities.enemies = this.entities.enemies.filter(entity => !entity.removeFromWorld);
@@ -177,9 +212,13 @@ class GameEngine {
         this.entities.enemies = this.entities.enemies.concat(this.entitiesToAdd); //prob change to add different stuff
         this.entitiesToAdd = [];
 
+        this.entities.tiles = this.entities.tiles.concat(this.tilesToAdd); //prob change to add different stuff
+        this.tilesToAdd = [];
+
 
         this.entities.player.update(); //updates player
         this.camera.update(); //updates scene manager
+
     };
 
     loop() {
