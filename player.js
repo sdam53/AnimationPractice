@@ -38,9 +38,9 @@ class Player {
 
     this.rollSpeed = 1;
 
+    this.jumpSpeed = this.game.blockSize;
     this.jump = false;
-    this.fall = false;
-    this.down = true;
+    this.fall = true;
 
     this.canGetHurt = true;
 
@@ -141,11 +141,12 @@ class Player {
   }
 
   update() {
+    const TICK = this.game.timer.tick();
     let collideCount = 0;
     var that = this;
     this.canGetHurt = false; //I-Frames when rolling
     if (this.animations[this.size][0][3].frame >= 6 && this.animations[this.size][0][3].frame <= 19) {
-      this.x += this.rollSpeed * PARAMS.SCALE;
+      this.x += this.rollSpeed * PARAMS.SCALE; // need to do checks BB collision
     } else if (this.animations[this.size][1][3].frame >= 6 && this.animations[this.size][1][3].frame <= 19) {
       this.x -= this.rollSpeed * PARAMS.SCALE;
     } else { //makes sure that whn you roll you can only roll
@@ -158,13 +159,17 @@ class Player {
         this.direction = 0;
         this.state = 1;
         if (this.checkMapCollision(this.x + this.speed * PARAMS.SCALE, this.y, 16 * PARAMS.SCALE, 39 * PARAMS.SCALE)) {
-          this.x += this.speed * PARAMS.SCALE;
+        //  if (this.x <=  * PARAMS.SCALE) { //need to get the map then row size * scale + some offset
+            this.x += this.speed * PARAMS.SCALE;
+        //  }
         }
       } else if (this.game.left) {
         this.direction = 1;
         this.state = 1;
         if (this.checkMapCollision(this.x - this.speed * PARAMS.SCALE, this.y, 16 * PARAMS.SCALE, 39 * PARAMS.SCALE)) {
-          this.x -= this.speed * PARAMS.SCALE;
+          if (this.x >= -30 * PARAMS.SCALE) { //dont let him go to the left off map
+            this.x -= this.speed * PARAMS.SCALE;
+          }
         }
       }
       if (this.game.down) {
@@ -174,32 +179,30 @@ class Player {
         }
       }
 
-
+      //jumping
+      //needs alot of work
+      //can just hold space and fly up in the air
+      //velocity and acceleration stuff need to be added too.
       if (this.game.space) {
-        this.jump = true;
-        this.fall = false;
-      }
-      //console.log(this.jump);
-      //console.log(this.fall);
-        if (this.jump) {
-            if (this.y > 10) {
-                this.y -= 20;
-
-            }
-            if (this.y <= 50) {//not reaching this
-                 this.jump = false;
-                 this.fall = true;
-             }
-        } else if (this.fall) {
-            if (this.y < 10) {
-                this.y += 40;
-            }
-            if (this.y >= 10) {
-                this.y = 10;
-                this.fall = false;
-                this.down = true;
-            }
+        if (!this.jump) {
+          this.jump = true;
+          this.fall = false;
         }
+      }
+      if (this.jump) {
+        if (this.checkMapCollision(this.x, this.y - 7, 16 * PARAMS.SCALE, 39 * PARAMS.SCALE)) {
+          this.y -= 7;
+        }
+        this.jump = false;
+        this.fall = true;
+      } else if (this.fall) {
+        if (this.checkMapCollision(this.x, this.y + 7, 16 * PARAMS.SCALE, 39 * PARAMS.SCALE)) {
+          this.y += 7;
+        } else {
+        }
+      }
+    //  console.log(this.jump , this.fall);
+      //prevent jump mid air maybe by doing the flag variable stuff
 
 
 
@@ -220,7 +223,6 @@ class Player {
       if (this.game.shift) {
           this.animations[this.size][this.direction][this.state].flag = true;
           this.state = 3;
-          console.log("shift");
       }
       if (!(this.game.right || this.game.left || this.game.up || this.game.down || this.game.space || this.game.shift || this.game.click)) {
         this.state = 0;
