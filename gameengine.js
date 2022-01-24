@@ -170,6 +170,10 @@ class GameEngine {
         this.entitiesToAdd.push(entity);
     };
 
+    addEnemy(entity) { //rn its used for enemy adding
+        this.entities.enemies.push(entity);
+    };
+
     addTiles(tiles) {
       this.tilesToAdd.push(tiles);
     }
@@ -178,8 +182,8 @@ class GameEngine {
 
         // Clear the whole canvas with transparent color (rgba(0, 0, 0, 0))
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-        this.ctx.drawImage(ASSET_MANAGER.getAsset("./assets/Background_0.png"), 0, 0, 1850, 800);
-        this.ctx.drawImage(ASSET_MANAGER.getAsset("./assets/Background_1.png"), 0, 0, 1850, 800);
+      //  this.ctx.drawImage(ASSET_MANAGER.getAsset("./assets/Background_0.png"), 0, 0, 1850, 800);
+        //this.ctx.drawImage(ASSET_MANAGER.getAsset("./assets/Background_1.png"), 0, 0, 1850, 800);
 
 
         // Draw latest things first

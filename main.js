@@ -12,14 +12,8 @@ ASSET_MANAGER.queueDownload("./assets/Background_1.png");
 ASSET_MANAGER.queueDownload("./assets/Background_0.png");
 ASSET_MANAGER.queueDownload("./assets/tileset 1.png");
 
-ASSET_MANAGER.queueDownload("./assets/test/player_front_death.png");
-ASSET_MANAGER.queueDownload("./assets/test/player_front_idle.png");
-ASSET_MANAGER.queueDownload("./assets/test/player_front_run.png");
-ASSET_MANAGER.queueDownload("./assets/test/player_left_idle.png");
-ASSET_MANAGER.queueDownload("./assets/test/player_left_run.png");
-ASSET_MANAGER.queueDownload("./assets/test/player_right_idle.png");
-ASSET_MANAGER.queueDownload("./assets/test/player_right_run.png");
-
+ASSET_MANAGER.queueDownload("./assets/StormHead.png");
+ASSET_MANAGER.queueDownload("./assets/shadow_of_storms.png");
 //music
 ASSET_MANAGER.queueDownload("./assets/alex-productions-epic-cinematic-gaming-cyberpunk-reset.mp3");
 

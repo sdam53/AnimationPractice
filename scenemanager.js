@@ -3,8 +3,7 @@ class SceneManager {
     this.game = game;
     this.game.camera = this;
     this.spritesheet = ASSET_MANAGER.getAsset("./assets/ui.png");
-    this.player = new Player(this.game, 300,180);
-    this.game.entities.player = this.player;
+    this.player;
 
 
     this.playerStats = {
@@ -35,20 +34,25 @@ class SceneManager {
   loadLevel() {
     let x = 0;
     let y = 0;
-    for (let i = 0; i < MAPONE.MAP.length; i++) {
+    for (let i = 0; i < MAPONE.MAP.length; i++) { //create level
       for (let j = 0; j < MAPONE.MAP[0].length; j++) {
         if (MAPONE.MAP[i][j] === 1) {
           this.game.addTiles(new LightGreyBlock(this.game, x, y, this.game.blockSize * PARAMS.SCALE, this.game.blockSize * PARAMS.SCALE));
         } else if (MAPONE.MAP[i][j] === 2) {
           this.game.addTiles(new DarkGreyBlock(this.game, x, y, this.game.blockSize * PARAMS.SCALE, this.game.blockSize * PARAMS.SCALE));
         }
-        console.log("(" + x + ", " + y + ")");
         x += this.game.blockSize * PARAMS.SCALE;
       }
     //  console.log("y" + y);
       x = 0;
       y += this.game.blockSize * PARAMS.SCALE;
     }
+    //add player
+    this.player = new Player(this.game, MAPONE.PLAYER[0], MAPONE.PLAYER[1]);
+    this.game.entities.player = this.player;
+    this.game.addEnemy(new StormHead(this.game, 50,50))
+    this.game.addEnemy(new ShadowOfStorms(this.game, 0,0))
+
   };
 
 
